@@ -10,32 +10,28 @@ import { storeInSession } from "../main"
 
 const UserAuthForm = ({ type }) => {
   const authForm = useRef()
-  const dispatch = useDispatch()
+  const dispatch  = useDispatch()
   const { userAuth } = useSelector((state) => state)
 
-  // ─── Send credentials to your backend ─────────────────────────
   const userAuthThroughServer = (serverRoute, formData) => {
     axios
       .post(import.meta.env.VITE_SERVER_DOMAIN + serverRoute, formData)
       .then(({ data }) => {
-        storeInSession("user", data)           // save in sessionStorage
-        dispatch({ type: "LOGIN", data })       // save in redux
+        storeInSession("user", data)
+        dispatch({ type: "LOGIN", data })
       })
       .catch(({ response }) => {
         toast.error(response?.data?.error || "Something went wrong")
       })
   }
 
-  // ─── Form submit handler ───────────────────────────────────────
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    const serverRoute = type === "sign-in" ? "/signin" : "/signup"
+    const serverRoute    = type === "sign-in" ? "/api/v1/users/Login" : "/api/v1/users/register"
+    const emailRegex     = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
+    const passwordRegex  = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/
 
-    const emailRegex    = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
-    const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/
-
-    // collect form fields into an object
     const formData = {}
     new FormData(authForm.current).forEach((value, key) => {
       formData[key] = value
@@ -43,25 +39,24 @@ const UserAuthForm = ({ type }) => {
 
     const { fullname, email, password } = formData
 
-    if (type === "sign-up" && fullname.length < 3) {
-      return toast.error("Full name must be at least 3 letters long")
-    }
-    if (!emailRegex.test(email)) {
+    if (type === "sign-up" && fullname?.length < 3)
+      return toast.error("Full name must be at least 3 letters")
+    if (!emailRegex.test(email))
       return toast.error("Enter a valid email address")
-    }
-    if (!passwordRegex.test(password)) {
-      return toast.error(
-        "Password must be 6–20 chars with at least 1 number, 1 uppercase & 1 lowercase letter"
-      )
-    }
+    if (!passwordRegex.test(password))
+      return toast.error("Password: 6–20 chars, 1 number, 1 uppercase, 1 lowercase")
 
     userAuthThroughServer(serverRoute, formData)
   }
 
-  // ─── Already logged in → redirect home ───────────────────────
-  if (userAuth?.access_token) {
-    return <Navigate to="/" />
+  // ── Google OAuth — just redirect browser to backend ──────────
+  const handleGoogleAuth = () => {
+    // This causes a full browser redirect to your backend
+    // Backend will handle OAuth and redirect back to /login-success
+    window.location.href = import.meta.env.VITE_SERVER_DOMAIN + "/api/v1/users/google"
   }
+
+  if (userAuth?.access_token) return <Navigate to="/" />
 
   return (
     <AnimationWrapper keyValue={type}>
@@ -73,48 +68,47 @@ const UserAuthForm = ({ type }) => {
             {type === "sign-in" ? "Welcome Back" : "Join Us Today"}
           </h1>
 
-          {/* Show Full Name only on Sign Up */}
           {type !== "sign-in" && (
-            <InputBox
-              name="fullname"
-              type="text"
-              placeholder="Full Name"
-              icon="fi-rr-circle-user"
-            />
+            <InputBox name="fullname" type="text" placeholder="Full Name" icon="fi-rr-circle-user" />
           )}
 
-          <InputBox
-            name="email"
-            type="email"
-            placeholder="Email"
-            icon="fi-rr-envelope"
-          />
-
-          <InputBox
-            name="password"
-            type="password"
-            placeholder="Password"
-            icon="fi-rr-key"
-          />
+          <InputBox name="email"    type="email"    placeholder="Email"    icon="fi-rr-envelope" />
+          <InputBox name="password" type="password" placeholder="Password" icon="fi-rr-key"      />
 
           <button className="btn-dark center mt-6 w-[40%]" type="submit">
             {type.replace("-", " ")}
           </button>
 
-          {/* Toggle Sign In / Sign Up */}
+          {/* Divider */}
+          <div className="relative w-full flex items-center gap-2 my-10 opacity-30 uppercase text-dark-grey font-bold">
+            <hr className="w-1/2 border-black" />
+            <p>or</p>
+            <hr className="w-1/2 border-black" />
+          </div>
+
+          {/* Google Button — redirects to backend */}
+          <button
+            type="button"
+            onClick={handleGoogleAuth}
+            className="btn-dark flex items-center justify-center gap-4 w-[90%] center"
+          >
+            <img
+              src="https://www.google.com/favicon.ico"
+              className="w-5 h-5 object-contain"
+              alt="google"
+            />
+            continue with google
+          </button>
+
           {type === "sign-in" ? (
             <p className="mt-6 text-dark-grey text-xl text-center">
               Don't have an account?{" "}
-              <Link to="/signup" className="underline text-black ml-1">
-                Join us today
-              </Link>
+              <Link to="/signup" className="underline text-black ml-1">Join us today</Link>
             </p>
           ) : (
             <p className="mt-6 text-dark-grey text-xl text-center">
               Already a member?{" "}
-              <Link to="/signin" className="underline text-black ml-1">
-                Sign in here
-              </Link>
+              <Link to="/signin" className="underline text-black ml-1">Sign in here</Link>
             </p>
           )}
 
