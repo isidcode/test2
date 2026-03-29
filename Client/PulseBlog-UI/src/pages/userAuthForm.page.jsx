@@ -17,13 +17,12 @@ const UserAuthForm = ({ type }) => {
     axios
       .post(import.meta.env.VITE_SERVER_DOMAIN + serverRoute, formData)
       .then(({ data }) => {
-        // ✅ backend returns { user, accessToken, refreshToken }
-        // we store the shape our app needs
+        
         const userData = {
           access_token: data.accessToken,
           username:     data.user?.username,
           fullname:     data.user?.fullname,
-          profile_img:  data.user?.avatar,   // ✅ backend calls it avatar
+          profile_img:  data.user?.avatar,  
         }
         storeInSession("user", userData)
         dispatch({ type: "LOGIN", data: userData })
@@ -36,8 +35,7 @@ const UserAuthForm = ({ type }) => {
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    // ✅ backend register route: /api/v1/users/register
-    // ✅ backend login route:    /api/v1/users/Login
+  
     const serverRoute = type === "sign-in"
       ? "/api/v1/users/Login"
       : "/api/v1/users/register"
