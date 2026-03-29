@@ -10,27 +10,40 @@ import { storeInSession } from "../main"
 
 const UserAuthForm = ({ type }) => {
   const authForm = useRef()
-  const dispatch  = useDispatch()
+  const dispatch = useDispatch()
   const { userAuth } = useSelector((state) => state)
 
   const userAuthThroughServer = (serverRoute, formData) => {
     axios
       .post(import.meta.env.VITE_SERVER_DOMAIN + serverRoute, formData)
       .then(({ data }) => {
-        storeInSession("user", data)
-        dispatch({ type: "LOGIN", data })
+        // ✅ backend returns { user, accessToken, refreshToken }
+        // we store the shape our app needs
+        const userData = {
+          access_token: data.accessToken,
+          username:     data.user?.username,
+          fullname:     data.user?.fullname,
+          profile_img:  data.user?.avatar,   // ✅ backend calls it avatar
+        }
+        storeInSession("user", userData)
+        dispatch({ type: "LOGIN", data: userData })
       })
       .catch(({ response }) => {
-        toast.error(response?.data?.error || "Something went wrong")
+        toast.error(response?.data?.message || "Something went wrong")
       })
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    const serverRoute    = type === "sign-in" ? "/api/v1/users/Login" : "/api/v1/users/register"
-    const emailRegex     = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
-    const passwordRegex  = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/
+    // ✅ backend register route: /api/v1/users/register
+    // ✅ backend login route:    /api/v1/users/Login
+    const serverRoute = type === "sign-in"
+      ? "/api/v1/users/Login"
+      : "/api/v1/users/register"
+
+    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
+    const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,20}$/
 
     const formData = {}
     new FormData(authForm.current).forEach((value, key) => {
@@ -49,11 +62,9 @@ const UserAuthForm = ({ type }) => {
     userAuthThroughServer(serverRoute, formData)
   }
 
-  // ── Google OAuth — just redirect browser to backend ──────────
   const handleGoogleAuth = () => {
-    // This causes a full browser redirect to your backend
-    // Backend will handle OAuth and redirect back to /login-success
-    window.location.href = import.meta.env.VITE_SERVER_DOMAIN + "/api/v1/users/google"
+    window.location.href =
+      import.meta.env.VITE_SERVER_DOMAIN + "/api/v1/users/google"
   }
 
   if (userAuth?.access_token) return <Navigate to="/" />
@@ -69,24 +80,37 @@ const UserAuthForm = ({ type }) => {
           </h1>
 
           {type !== "sign-in" && (
-            <InputBox name="fullname" type="text" placeholder="Full Name" icon="fi-rr-circle-user" />
+            <InputBox
+              name="fullname"
+              type="text"
+              placeholder="Full Name"
+              icon="fi-rr-circle-user"
+            />
           )}
 
-          <InputBox name="email"    type="email"    placeholder="Email"    icon="fi-rr-envelope" />
-          <InputBox name="password" type="password" placeholder="Password" icon="fi-rr-key"      />
+          <InputBox
+            name="email"
+            type="email"
+            placeholder="Email"
+            icon="fi-rr-envelope"
+          />
+          <InputBox
+            name="password"
+            type="password"
+            placeholder="Password"
+            icon="fi-rr-key"
+          />
 
           <button className="btn-dark center mt-6 w-[40%]" type="submit">
             {type.replace("-", " ")}
           </button>
 
-          {/* Divider */}
           <div className="relative w-full flex items-center gap-2 my-10 opacity-30 uppercase text-dark-grey font-bold">
             <hr className="w-1/2 border-black" />
             <p>or</p>
             <hr className="w-1/2 border-black" />
           </div>
 
-          {/* Google Button — redirects to backend */}
           <button
             type="button"
             onClick={handleGoogleAuth}
@@ -95,7 +119,6 @@ const UserAuthForm = ({ type }) => {
             <img
               src="https://www.google.com/favicon.ico"
               className="w-5 h-5 object-contain"
-              alt="google"
             />
             continue with google
           </button>
@@ -103,12 +126,16 @@ const UserAuthForm = ({ type }) => {
           {type === "sign-in" ? (
             <p className="mt-6 text-dark-grey text-xl text-center">
               Don't have an account?{" "}
-              <Link to="/signup" className="underline text-black ml-1">Join us today</Link>
+              <Link to="/signup" className="underline text-black ml-1">
+                Join us today
+              </Link>
             </p>
           ) : (
             <p className="mt-6 text-dark-grey text-xl text-center">
               Already a member?{" "}
-              <Link to="/signin" className="underline text-black ml-1">Sign in here</Link>
+              <Link to="/signin" className="underline text-black ml-1">
+                Sign in here
+              </Link>
             </p>
           )}
 
