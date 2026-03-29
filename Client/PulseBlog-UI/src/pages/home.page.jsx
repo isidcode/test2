@@ -33,13 +33,13 @@ const HomePage = () => {
                     <div className="w-full">
                       <div className="flex gap-2 items-center mb-7">
 
-                        {/* ✅ FIXED: backend sends avatar not personal_info.profile_img */}
+                        
                         <img
                           src={blog.author?.avatar}
                           className="w-6 h-6 rounded-full"
                         />
                         <p className="line-clamp-1 text-dark-grey">
-                          {/* ✅ FIXED: backend sends fullname and username flat */}
+                        
                           {blog.author?.fullname} @{blog.author?.username}
                         </p>
                       </div>
