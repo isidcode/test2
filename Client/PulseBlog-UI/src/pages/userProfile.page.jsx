@@ -13,7 +13,7 @@ const UserProfilePage = () => {
   useEffect(() => {
     setLoading(true)
 
-    // ✅ get-profile sends username in body
+    
     axios
       .post(import.meta.env.VITE_SERVER_DOMAIN + "/get-profile", { username })
       .then(({ data }) => {
@@ -40,7 +40,7 @@ const UserProfilePage = () => {
     return <h1 className="text-center text-3xl mt-20">User not found</h1>
   }
 
-  // ✅ FIXED: backend sends flat fields, not nested personal_info
+  
   const { username: uname, fullname, bio, avatar, account_info, social_links, joinedAt, createdAt } = profile
 
   return (
@@ -50,7 +50,7 @@ const UserProfilePage = () => {
         {/* Sidebar */}
         <div className="flex flex-col max-md:items-center gap-5 min-w-[250px] md:w-[50%] md:pl-8 md:border-l border-grey md:sticky md:top-[100px] md:py-10">
 
-          {/* ✅ FIXED: avatar not profile_img */}
+        
           <img
             src={avatar}
             alt="user avatar"
@@ -93,7 +93,7 @@ const UserProfilePage = () => {
             <div className="flex gap-4 mt-2 flex-wrap">
               {Object.entries(social_links).map(([platform, link]) =>
                 link ? (
-                  // ✅ FIXED SYNTAX ERROR: The <a tag was missing here
+                
                   <a
                     key={platform}
                     href={link}
