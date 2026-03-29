@@ -44,13 +44,13 @@ const BlogPage = () => {
             <div className="flex justify-between my-8 pb-8 border-b border-grey">
               <div className="flex gap-5 items-start">
 
-                {/* ✅ FIXED: avatar instead of personal_info.profile_img */}
+              
                 <img
                   src={blog.author?.avatar}
                   className="w-12 h-12 rounded-full"
                 />
                 <p className="capitalize text-lg">
-                  {/* ✅ FIXED: fullname and username are flat */}
+                
                   {blog.author?.fullname}
                   <br />
                   <Link
